@@ -30,7 +30,7 @@ module Main_Memory(
         inout wire [3:0] ACK_DATA_L1,
         inout wire [3:0] ACK_DATA_MEM,
         inout wire ACK_ADDR,
-        inout wire ACK_DATA_STORE
+       
 
     );
     

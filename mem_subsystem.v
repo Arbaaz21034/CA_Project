@@ -12,7 +12,13 @@ module Memory_Subsystem (
     wire VALID;
     wire [31:0] DATA;
     wire ACK_ADDR;
-    wire [3:0] ACK_DATA;
+    wire [3:0] ACK_DATA_L1;
+    wire [3:0] ACK_DATA_MEM;
+
+    wire LOAD;
+    wire STORE;
+
+    
 
 
     L1D_Cache cache (
@@ -21,30 +27,33 @@ module Memory_Subsystem (
         .READY(READY),
         .VALID(VALID),
         .DATA(DATA),
+        .LOAD(LOAD),
+        .STORE(STORE),
         .data(data),
+        .ACK_ADDR(ACK_ADDR),
+        .ACK_DATA_L1(ACK_ADDR_L1),
+        .ACK_DATA_MEM(ACK_DATA_MEM)
 
         
     );
 
     Main_Memory memory (
+        
         .CLK(CLK),
+        .READY(READY),
+        .VALID(VALID),
+        .DATA(DATA),
+        .LOAD(LOAD),
+        .STORE(STORE),
+        .data(data),
+        .ACK_ADDR(ACK_ADDR),
+        .ACK_DATA_L1(ACK_ADDR_L1),
+        .ACK_DATA_MEM(ACK_DATA_MEM)
+
+
     )
 
-    assign cache.LOAD = LOAD && memory.LOAD;
-
-    assign memory.STORE = STORE && cache.STORE;
-
-    assign cache.READY = memory.READY;
-
-    assign memory.VALID = cache.VALID;
-
-    assign cache.DATA = memory.DATA;
     
-    assign memory.DATA = cache.DATA;
-
-    assign cache.ACK_ADDR = memory.ACK_ADDR;
-    
-    assign memory.ACK_DATA = cache.ACK_DATA;
 
 
 
