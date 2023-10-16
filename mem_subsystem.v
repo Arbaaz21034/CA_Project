@@ -1,6 +1,6 @@
 
 
-module MemorySubsystem (
+module Memory_Subsystem (
     input wire [31:0] input_address,
     input wire LOAD,
     input wire STORE,
@@ -8,15 +8,25 @@ module MemorySubsystem (
     input wire CLK
 );
 
-    l1_dcache cache (
+    wire READY;
+    wire VALID;
+    wire [31:0] DATA;
+    wire ACK_ADDR;
+    wire [3:0] ACK_DATA;
+
+
+    L1D_Cache cache (
         .input_address(input_address),
         .CLK(CLK),
+        .READY(READY),
+        .VALID(VALID),
+        .DATA(DATA),
         .data(data),
 
         
     );
 
-    main_memory memory (
+    Main_Memory memory (
         .CLK(CLK),
     )
 

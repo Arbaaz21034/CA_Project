@@ -20,28 +20,31 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module main_memory(
+module Main_Memory(
         inout reg [31: 0] DATA,
         input wire CLK,
         input wire VALID,
         output wire READY,
         inout wire LOAD,
         input wire STORE,
-        inout wire [3:0] ACK_DATA,
-        inout wire ACK_ADDR 
+        input wire [3:0] ACK_DATA_L1,
+        output wire [3:0] ACK_DATA_MEM,
+        inout wire ACK_ADDR,
+        inout wire ACK_DATA_STORE
+
     );
     
     parameter MEM_SIZE = 2048; // 2048 words
     
     reg [31: 0] mem_storage[0: MEM_SIZE-1];
     //read mem hexadecimal: TODO 
-    reg [2:0] word_to_be_sent = 3'b000;
+    reg [2:0] word_sent = 3'b000;
     
     reg address_received = 1'b0;
     
     reg [31:0] address = 1'b0;
     
-    ACK_DATA = 4'b1000;
+    ACK_DATA_MEM = 4'b1111;
 
     always @(posedge CLK) begin
 
@@ -55,23 +58,24 @@ module main_memory(
             address_received = 1'b1;
             reg [31:0] start_address = floor(address / 8) * 8;
             DATA = mem_storage[start_address + word_sent*(32'b0100)];
-            ACK_DATA = 4'b0000;
+            ACK_DATA_MEM = 4'b0000;
+            
             
         end
 
-        else if (LOAD && VALID && READY && address_received && ACK_DATA == word_sent) begin
+        else if (LOAD && VALID && READY && address_received && ACK_DATA_L1 == word_sent) begin
             reg [31:0] start_address = floor(address / 8) * 8;
             word_sent = word_sent + 1'b1;
             DATA = mem_storage[start_address + word_sent*(32'b0100)];
-            ACK_DATA = word_sent;
+            ACK_DATA_MEM = word_sent;
 
         end
 
         // Load has been completed
-        else if (LOAD && VALID && READY && ACK_DATA == 4'b0101) begin
+        else if (LOAD && VALID && READY && ACK_DATA_L1 == 4'b0111) begin
             word_sent = 4'b0000;
             READY = 0;
-            ACK_DATA = 4'b1000;
+            ACK_DATA_MEM = 4'b1111;
             address_received = 1'b0;
             LOAD = 1'b0;
         
@@ -89,13 +93,15 @@ module main_memory(
             ACK_ADDR = 1'b0;
         end
 
-        else if (STORE && VALID && READY && address_received && ACK_DATA == 4'b0000) begin
+        else if (STORE && VALID && READY && address_received && ACK_DATA_L1 == 4'b0000) begin
             data  = DATA;
             mem_storage[address_received] = data;
             address_received = 1'b0;
-            ACK_DATA = 4'b0001;
+            ACK_DATA_MEM = 4'b0000;
             READY = 0;
         end
+
+
         
     end
 endmodule
