@@ -26,11 +26,11 @@ module l1_dcache(
         input wire READY,  // Controlled by Main Memory
         output wire VALID, // Controlled by this L1 D Cache
         inout wire [31:0] DATA,  // For store address and data is sent using this by L1DCache, For load data is received from Main memory using this in case of miss.
-        input wire LOAD_STORE,   // This is input from user to categorise LOAD and STORE
-        input wire last_bit,
-        inout wire [31:0] data,  // This is output for final data to user and input from user for store
-        output wire sent_bit,  
-        inout wire ACK
+        input wire LOAD,   // This is input from user to categorise LOAD and STORE
+        inout wire STORE,
+        inout wire [31:0] data,  // output for final data to user and input from user for store
+        inout wire [3:0] ACK_DATA,
+        inout wire ACK_ADDR
     );
     
     parameter OFFSET_BITS = 5;
@@ -52,15 +52,17 @@ module l1_dcache(
     reg valid_bits[0:SETS-1][0:WAYS-1]=0;
     
     reg [31:0] fetched_data_from_mem [0:WORDS_PER_LINE-1];
-    integer word_fetched = 0;
+    reg [3:0] word_fetched = 0;
     
     reg [1:0] fifo_counter[0:SETS];
     reg [1:0] block_age[0:SETS][0:WAYS-1];
     
-    reg address_sent = 1'b0;
     
+    reg address_sent = 1'b0;
+
     always @(posedge CLK) begin 
-        if (!LOAD_STORE && !VALID) begin 
+        // LOAD operation received initially
+        if (LOAD && !VALID) begin 
             CACHE_HIT = 1'b0; 
             for (int way = 0; way < WAYS; way++) begin
                 if (cache_tags[index][way] == tag && valid_bits[index][way]) begin
@@ -73,18 +75,21 @@ module l1_dcache(
                 VALID <= 1'b1;
             end
         end
-        
-        else if (!LOAD_STORE && VALID && READY && !address_sent) begin
-            DATA <= input_address;
-            address_sent <= 1'b1;
+        // Load Operation: Connection Handshake done -> Here address is sent
+        else if (LOAD && VALID && READY && !address_sent) begin
+            DATA <= input_address
+            ACK_ADDR = 1'b1;
+            address_sent = 1'b1;
         end
         
-        else if (!LOAD_STORE && VALID && READY && address_sent) begin
-            fetched_data_from_mem[word_fetched] <= DATA;
-            word_fetched <= word_fetched + 1;
+        // Load Operation: Address has been received by the memory and word_to_be_fetched has been sent by mem
+        else if (LOAD && VALID && READY && address_sent && !ACK_ADDR && ACK_DATA == word_to_be_fetched) begin
+            fetched_data_from_mem[word_to_be_fetched] = DATA;
+            ACK_DATA = word_to_be_fetched;
             
-            if (word_fetched == 7) begin
-                word_fetched = 0;
+            // Load has been completed from L1 Cache side
+            if (word_to_be_fetched == 4'b0101) begin
+                word_to_be_fetched = 0;
                 replace_way <= 0;
                 cache_full = 1'b1;
                 for (int way = 0; i < WAYS; way++) begin
@@ -107,14 +112,16 @@ module l1_dcache(
                 block_age[index][replace_way] <= fifo_counter[index];
                 fifo_counter[index] <= fifo_counter[index] + 1'b1;
                 
-                data <= fetched_data_from_mem[offset];
-                VALID <= 1'b0;
+                data = fetched_data_from_mem[offset];
+                VALID = 1'b0;
            end
+
+           word_to_be_fetched = word_to_be_fetched + 1'b1;
         end
         
         
-        
-        else if (LOAD_STORE && !VALID) begin
+        // Store Operation Initially
+        else if (STORE && !VALID) begin
             VALID <= 1'b1;
             for (int way = 0; way < WAYS; way++) begin
                 if (cache_tags[index][way] == tag && valid_bits[index][way]) begin
@@ -124,21 +131,26 @@ module l1_dcache(
             end
         end
         
-        else if (LOAD_STORE && VALID && READY && !address_sent) begin
-            DATA <= input_address;
-            address_sent <= 1'b1;
-            sent_bit<=0;
+        // Handshake done and now address is to be sent
+        else if (STORE && VALID && READY && !address_sent) begin
+            DATA = input_address;
+            address_sent = 1'b1;
+            ACK_ADDR = 1'b1;
         end
         
-        else if (LOAD_STORE && VALID && READY && address_sent) begin
-            if(sent_bit==0) begin
-                DATA <= data;
-                sent_bit<=1;
-            end
-            else
-            begin
-                VALID<=0;
-            end
+        // Address is sent and received by the memory
+        else if (STORE && VALID && READY && address_sent && !ACK_ADDR) begin
+            DATA = data;
+            ACK_DATA = 4'b0000;
+        end
+        
+        // Store Completed ACK_DATA is 1 meaning that the data has be received by memory
+        else if (STORE && VALID && READY && ACK_DATA == 4'b0001) begin
+            address_sent = 1'b0;
+            ACK_DATA = 4'b1000;
+            VALID = 0;
+            STORE = 0;
+           
         end
         
             
