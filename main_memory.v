@@ -27,8 +27,8 @@ module Main_Memory(
         output wire READY,
         inout wire LOAD,
         input wire STORE,
-        input wire [3:0] ACK_DATA_L1,
-        output wire [3:0] ACK_DATA_MEM,
+        inout wire [3:0] ACK_DATA_L1,
+        inout wire [3:0] ACK_DATA_MEM,
         inout wire ACK_ADDR,
         inout wire ACK_DATA_STORE
 
@@ -63,7 +63,7 @@ module Main_Memory(
             
         end
 
-        else if (LOAD && VALID && READY && address_received && ACK_DATA_L1 == word_sent) begin
+        else if (LOAD && VALID && READY && address_received && ACK_DATA_L1 == word_sent && ACK_DATA_L1 != 4'b0111) begin
             reg [31:0] start_address = floor(address / 8) * 8;
             word_sent = word_sent + 1'b1;
             DATA = mem_storage[start_address + word_sent*(32'b0100)];
@@ -76,6 +76,7 @@ module Main_Memory(
             word_sent = 4'b0000;
             READY = 0;
             ACK_DATA_MEM = 4'b1111;
+            ACK_DATA_L1 = 4'b1111;
             address_received = 1'b0;
             LOAD = 1'b0;
         
@@ -91,6 +92,7 @@ module Main_Memory(
             address = DATA;
             address_received = 1'b1;
             ACK_ADDR = 1'b0;
+            ACK_DATA_MEM = 4'b0000;
         end
 
         else if (STORE && VALID && READY && address_received && ACK_DATA_L1 == 4'b0000) begin

@@ -29,8 +29,8 @@ module L1D_Cache(
         input wire LOAD,   // This is input from user to categorise LOAD and STORE
         inout wire STORE,
         inout wire [31:0] data,  // output for final data to user and input from user for store
-        input wire [3:0] ACK_DATA_MEM,
-        output wire [3:0] ACK_DATA_L1,
+        inout wire [3:0] ACK_DATA_MEM,
+        inout wire [3:0] ACK_DATA_L1,
         inout wire ACK_ADDR
     );
     
@@ -93,7 +93,6 @@ module L1D_Cache(
             
             // Load has been completed from L1 Cache side
             if (word_to_be_fetched == 4'b0111) begin
-                ACK_DATA_L1 = 4'b1111;
                 word_to_be_fetched = 0;
                 replace_way <= 0;
                 cache_full = 1'b1;
@@ -155,6 +154,7 @@ module L1D_Cache(
         else if (STORE && VALID && READY && ACK_DATA_MEM == 4'b0000) begin
             address_sent = 1'b0;
             ACK_DATA_L1 = 4'b1111;
+            ACK_DATA_MEM = 4'b1111;
             VALID = 0;
             STORE = 0;
            
