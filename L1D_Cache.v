@@ -28,7 +28,7 @@ module L1D_Cache(
         inout wire [31:0] DATA,  
         input wire LOAD,   // This is input from user to categorise LOAD and STORE
         inout wire STORE,
-        inout wire [31:0] data,  // output for final data to user and input from user for store
+        inout wire [31:0] data_io,  // output for final data to user and input from user for store
         inout wire [3:0] ACK_DATA_MEM,
         inout wire [3:0] ACK_DATA_L1,
         inout wire ACK_ADDR
@@ -50,24 +50,29 @@ module L1D_Cache(
     
     reg [31:0] cache_data[0:SETS-1][0:WAYS-1][0:WORDS_PER_LINE-1];
     reg [TAG_BITS-1:0] cache_tags[0:SETS-1][0:WAYS-1];
-    reg valid_bits[0:SETS-1][0:WAYS-1]=0;
+    reg valid_bits[0:SETS-1][0:WAYS-1];
     
     reg [31:0] fetched_data_from_mem [0:WORDS_PER_LINE-1];
-    reg [3:0] word_fetched = 0;
+    reg [3:0] word_to_be_fetched = 4'b0000;
     
     reg [1:0] fifo_counter[0:SETS];
     reg [31:0] block_age[0:SETS][0:WAYS-1];
     
+   
     
     reg address_sent = 1'b0;
+    
 
-    ACK_DATA_L1 = 4'b1111;
+    
+    
+    ACK_DATA_L1 = = 4'b1111;
+    
 
     always @(posedge CLK) begin 
         // LOAD operation received initially
         if (LOAD && !VALID) begin 
             CACHE_HIT = 1'b0; 
-            for (int way = 0; way < WAYS; way++) begin
+            for (integer way = 0; way < WAYS; way = way + 1) begin
                 if (cache_tags[index][way] == tag && valid_bits[index][way]) begin
                     data <= cache_data[index][way][offset];
                     CACHE_HIT <= 1'b1;
@@ -94,29 +99,33 @@ module L1D_Cache(
             // Load has been completed from L1 Cache side
             if (word_to_be_fetched == 4'b0111) begin
                 word_to_be_fetched = 0;
-                replace_way <= 0;
+                integer replace_way <= 0;
                 cache_full = 1'b1;
-                for (int way = 0; i < WAYS; way++) begin
+                for (int way = 0; way < WAYS; way++) begin
                     if (!valid_bits[index][way]) begin
                         replace_way <= way;
                         cache_full <= 1'b0;
+                        break;
                     end
                 end
                 if (cache_full) begin
-                    for (int way = 0; way < WAYS; way++) begin
+                    for (integer way = 0; way < WAYS; way = way + 1) begin
                         if (block_age[index][way] < block_age[index][replace_way]) begin
                             replace_way <= way;
                         end
                     end
                 end
-            
-                cache_data[index][replace_way] <= fetched_data_from_mem;
+
+                for (integer i = 0; i < word_to_be_fetched; i = i + 1) begin
+                    cache_data[index][replace_way][i] = fetched_data_from_mem[i];
+                end
+                
                 valid_bits[index][way] <= 1'b1;
                 cache_tags[index][replace_way] <= tag;
                 block_age[index][replace_way] <= fifo_counter[index];
                 fifo_counter[index] <= fifo_counter[index] + 1'b1;
                 
-                data = fetched_data_from_mem[offset];
+                data_io = fetched_data_from_mem[offset];
                 VALID = 1'b0;
            end
 
@@ -129,7 +138,7 @@ module L1D_Cache(
         // Store Operation Initially
         else if (STORE && !VALID) begin
             VALID <= 1'b1;
-            for (int way = 0; way < WAYS; way++) begin
+            for (integer way = 0; way < WAYS; way = way + 1) begin
                 if (cache_tags[index][way] == tag && valid_bits[index][way]) begin
                     cache_data[index][way] <= data;
                     
