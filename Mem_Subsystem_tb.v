@@ -51,7 +51,7 @@ module Mem_Subsystem_tb(
         #10;
 
         // Test Load Operation
-        tb_input_address = 32'h00000004;  // Sample address
+        tb_input_address = 32'h00000019;  // Sample address
         tb_LOAD = 1;
         #250; 
         
@@ -63,7 +63,7 @@ module Mem_Subsystem_tb(
         #10;
 
         // Test Load Operation
-        tb_input_address = 32'h00000019;  // Sample address
+        tb_input_address = 32'h00000004;  // Sample address
         tb_LOAD = 1;
         #250; // Simulate 10 clock cycles
         
@@ -76,7 +76,7 @@ module Mem_Subsystem_tb(
         #10;
 
         // Test Load Operation
-        tb_input_address = 32'h00000004;  // Sample address
+        tb_input_address = 32'h00000019;  // Sample address
         tb_LOAD = 1;
         #250; // Simulate 10 clock cycles
         
