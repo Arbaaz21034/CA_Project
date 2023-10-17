@@ -32,18 +32,14 @@ module L1D_Cache(
     reg [31:0] cache_data[0:SETS-1][0:WAYS-1][0:WORDS_PER_LINE-1];
     reg [TAG_BITS-1:0] cache_tags[0:SETS-1][0:WAYS-1];
     reg [7:0] valid_bits [0:SETS-1][0:WAYS-1];
-
-    generate
-        for (genvar set = 0; set < SETS; set = set + 1) begin : set_loop
-            for (genvar way = 0; way < WAYS; way = way + 1) begin : way_loop
-                initial begin
-                    valid_bits[set][way] = 8'b0; // Initialize to 0
-                end
-            end
-        end
-    endgenerate
-
     
+    initial begin
+        $readmemh("cache_data.mem", cache_data);
+        $readmemh("cache_tags.mem", cache_tags);
+        $readmemh("valid_bits.mem", valid_bits);
+    end
+
+   
     reg [31:0] fetched_data_from_mem [0:WORDS_PER_LINE-1];
     reg [3:0] word_fetched = 0;
     
@@ -52,24 +48,30 @@ module L1D_Cache(
    
     
     reg address_sent = 1'b0;
-    reg valid_internal;
-    reg ack_addr_internal;
-    reg store_internal;
+    reg valid_internal = 1'b0;
+    reg ack_addr_internal = 1'b0;
+    reg store_internal = 1'b0;
     reg [3:0] ack_data_l1_internal = 4'b1111;
     reg [3:0] ack_data_mem_internal = 4'b1111;
     reg [1:0] replace_way;
     reg [31:0] DATA_internal;
     reg [31:0] data_internal;
-
+    initial begin
+        $display("I am inside l1d");
+    end
     integer i;
     integer way;
 
     always @(posedge CLK) begin 
         // LOAD operation received initially
+        $display("I am ins %h",LOAD);
         if (LOAD && !VALID) begin 
             CACHE_HIT <= 1'b0; 
+            $display("I am inside always");
+
             for (way = 0; way < WAYS; way=way+1) begin
                 if (cache_tags[index][way] == tag && valid_bits[index][way]) begin
+                    $display("I am not checking you");
                     data_internal <= cache_data[index][way][offset];
                     CACHE_HIT <= 1'b1;
                     if (CACHE_HIT) begin end
