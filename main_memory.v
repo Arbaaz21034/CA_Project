@@ -8,7 +8,7 @@ inout wire [31:0] DATA,
         output wire READY,
         inout wire LOAD,
         input wire STORE,
-        inout wire [3:0] ACK_DATA,
+        inout wire [3:0] ACK_DATA_L1,
         inout wire ACK_ADDR 
     );
     
@@ -24,7 +24,7 @@ inout wire [31:0] DATA,
     reg [31:0] start_address;
     reg [31:0] data_internal;
     reg load_internal;
-//    ACK_DATA = 4'b1000;
+    ACK_DATA_MEM = 4'b1111;
 initial begin
     ack_data_internal <= 4'b1000;
     end
