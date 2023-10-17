@@ -30,9 +30,9 @@ module L1D_Cache(
     
     
     
-    wire [TAG_BITS-1:0] tag = input_address[31:OFFSET_BITS+INDEX_BITS];
-    wire [INDEX_BITS-1:0] index = input_address[OFFSET_BITS+INDEX_BITS-1:OFFSET_BITS];
-    wire [OFFSET_BITS-1:0] offset = input_address[OFFSET_BITS-1:0];
+    reg [TAG_BITS-1:0] tag;
+    reg [INDEX_BITS-1:0] index;
+    reg [OFFSET_BITS-1:0] offset; 
     
     reg CACHE_HIT = 0;
     reg cache_full = 0;
@@ -87,7 +87,9 @@ module L1D_Cache(
         if (LOAD && !VALID) begin 
             $display("This is for %h", input_address);
             CACHE_HIT = 1'b0; 
-   
+            tag = input_address[31:OFFSET_BITS+INDEX_BITS];
+            index = input_address[OFFSET_BITS+INDEX_BITS-1:OFFSET_BITS];
+            offset = input_address[OFFSET_BITS-1:0];
             for (way = 0; way < WAYS; way=way+1) begin
                 if (cache_tags[index][way] == tag && valid_bits[index][way]) begin
                     
@@ -128,6 +130,9 @@ module L1D_Cache(
             word_fetched = word_fetched + 1'b1;
             // Load has been completed from L1 Cache side
             if (word_fetched == 4'b1000) begin
+                tag = input_address[31:OFFSET_BITS+INDEX_BITS];
+                index = input_address[OFFSET_BITS+INDEX_BITS-1:OFFSET_BITS];
+                offset = input_address[OFFSET_BITS-1:0];
                 address_sent = 1'b0;
                 word_fetched = 4'b0000;
                 replace_way = 0;
@@ -145,9 +150,12 @@ module L1D_Cache(
                         end
                     end
                 end
-            
-                for (i = 0; i <= word_fetched; i = i + 1) begin
+                
+                $display("This is the replace way %h %h %h", index, replace_way, offset);
+                
+                for (i = 0; i < 8; i = i + 1) begin
                     cache_data[index][replace_way][i] = fetched_data_from_mem[i];
+                    $display("this is it %h",cache_data[index][replace_way][i]); 
                 end
                 valid_bits[index][replace_way] = 1'b1;
                 cache_tags[index][replace_way] = tag;
