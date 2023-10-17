@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module l1_dcache(
+module L1D_Cache(
         input wire [31:0] input_address,  //This is the input address given by the user
         input wire CLK,  // Clock
         input wire READY,  // Controlled by Main Memory
@@ -67,12 +67,12 @@ module l1_dcache(
     always @(posedge CLK) begin 
         // LOAD operation received initially
         if (LOAD && !VALID) begin 
-            CACHE_HIT = 1'b0; 
+            CACHE_HIT <= 1'b0; 
             for (way = 0; way < WAYS; way=way+1) begin
                 if (cache_tags[index][way] == tag && valid_bits[index][way]) begin
                     data_internal <= cache_data[index][way][offset];
                     CACHE_HIT <= 1'b1;
-                    break;
+                    if (CACHE_HIT) begin end
                 end
             end
             if (!CACHE_HIT) begin
