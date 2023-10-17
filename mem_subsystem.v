@@ -6,14 +6,22 @@ module Mem_Subsystem (
     input wire STORE,
     inout [31:0] data,
     input wire CLK
+    
+   
 );
 
     wire READY;
     wire VALID;
-    wire [31:0] DATA;
-    wire ACK_ADDR;
+    wire [31:0] DATA_L1;
+    wire [31:0] DATA_MEM;
+    
+    wire ACK_ADDR_L1;
+    wire ACK_ADDR_MEM;
+    
     wire [3:0] ACK_DATA_L1;
     wire [3:0] ACK_DATA_MEM;
+
+    wire RESET_ACK;
 
   
 
@@ -25,13 +33,16 @@ module Mem_Subsystem (
         .CLK(CLK),
         .READY(READY),
         .VALID(VALID),
-        .DATA(DATA),
+        .DATA_L1(DATA_L1),
+        .DATA_MEM(DATA_MEM),
         .LOAD(LOAD),
         .STORE(STORE),
         .data(data),
-        .ACK_ADDR(ACK_ADDR),
+        .ACK_ADDR_L1(ACK_ADDR_L1),
+        .ACK_ADDR_MEM(ACK_ADDR_MEM),
         .ACK_DATA_L1(ACK_DATA_L1),
-        .ACK_DATA_MEM(ACK_DATA_MEM)
+        .ACK_DATA_MEM(ACK_DATA_MEM),
+        .RESET_ACK(RESET_ACK)
 
         
     );
@@ -41,12 +52,16 @@ module Mem_Subsystem (
         .CLK(CLK),
         .READY(READY),
         .VALID(VALID),
-        .DATA(DATA),
+        .DATA_L1(DATA_L1),
+        .DATA_MEM(DATA_MEM),
         .LOAD(LOAD),
         .STORE(STORE),
-        .ACK_ADDR(ACK_ADDR),
+        .ACK_ADDR_L1(ACK_ADDR_L1),
+        .ACK_ADDR_MEM(ACK_ADDR_MEM),
         .ACK_DATA_L1(ACK_DATA_L1),
-        .ACK_DATA_MEM(ACK_DATA_MEM)
+        .ACK_DATA_MEM(ACK_DATA_MEM),
+        .RESET_ACK(RESET_ACK)
+       
 
 
     );
