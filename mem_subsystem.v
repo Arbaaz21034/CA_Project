@@ -1,11 +1,13 @@
 
-
+`timescale 1ns / 1ps
 module Mem_Subsystem (
     input wire [31:0] input_address,
     input wire LOAD,
     input wire STORE,
-    inout [31:0] data,
-    input wire CLK
+    inout wire [31:0] data,
+    input wire [31:0] input_data,
+    input wire CLK, 
+    inout wire store_completed
     
    
 );
@@ -21,7 +23,8 @@ module Mem_Subsystem (
     wire [3:0] ACK_DATA_L1;
     wire [3:0] ACK_DATA_MEM;
 
-    wire RESET_ACK;
+    wire RESET_ACK_L1;
+    wire RESET_ACK_MEM;
 
   
 
@@ -30,6 +33,7 @@ module Mem_Subsystem (
 
     L1D_Cache cache (
         .input_address(input_address),
+        .input_data(input_data),
         .CLK(CLK),
         .READY(READY),
         .VALID(VALID),
@@ -42,7 +46,9 @@ module Mem_Subsystem (
         .ACK_ADDR_MEM(ACK_ADDR_MEM),
         .ACK_DATA_L1(ACK_DATA_L1),
         .ACK_DATA_MEM(ACK_DATA_MEM),
-        .RESET_ACK(RESET_ACK)
+        .RESET_ACK_L1(RESET_ACK_L1),
+        .RESET_ACK_MEM(RESET_ACK_MEM),
+        .store_completed(store_completed)
 
         
     );
@@ -60,7 +66,9 @@ module Mem_Subsystem (
         .ACK_ADDR_MEM(ACK_ADDR_MEM),
         .ACK_DATA_L1(ACK_DATA_L1),
         .ACK_DATA_MEM(ACK_DATA_MEM),
-        .RESET_ACK(RESET_ACK)
+        .RESET_ACK_L1(RESET_ACK_L1),
+        .RESET_ACK_MEM(RESET_ACK_MEM)
+        
        
 
 
