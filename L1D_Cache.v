@@ -71,6 +71,7 @@ module L1D_Cache(
     
     reg address_sent = 1'b0;
     
+    reg word_received = 1'b0;
     
     initial begin
         ACK_ADDR_L1 = 1'b0;
@@ -114,19 +115,23 @@ module L1D_Cache(
         
         // Load Operation: Connection Handshake done -> Here address is sent
         else if (LOAD && VALID && READY && !address_sent) begin
+            $display("address is being sent");
             DATA_L1 = input_address;
             ACK_ADDR_L1 = 1'b1;
             address_sent = 1'b1;
         end
         
-        else if (LOAD && VALID && READY && address_sent && ACK_ADDR_MEM && word_fetched == 4'b0000 && ACK_DATA_MEM == word_fetched && !ACK_COUNT_MEM) begin
+        else if (LOAD && VALID && READY && address_sent && !word_received && ACK_ADDR_MEM && word_fetched == 4'b0000 && ACK_DATA_MEM == word_fetched && !ACK_COUNT_MEM) begin
+            $display("Give base word %h", DATA_MEM);
             ACK_ADDR_L1 = 1'b0;
             fetched_data_from_mem[word_fetched] = DATA_MEM;
             ACK_DATA_L1 = word_fetched;
             ACK_COUNT_L1 = 1'b0;
+            word_received = 1'b1;
         end
 
-        else if (LOAD && VALID && READY && address_sent && word_fetched == 4'b0000 && ACK_DATA_MEM == word_fetched && ACK_COUNT_MEM) begin
+        else if (LOAD && VALID && READY && address_sent && word_received && word_fetched == 4'b0000 && ACK_DATA_MEM == word_fetched && ACK_COUNT_MEM) begin
+            $display("Give base count %h", DATA_MEM);
             ACK_ADDR_L1 = 1'b0;
             base_count = DATA_MEM;
 
@@ -136,18 +141,22 @@ module L1D_Cache(
            
             ACK_COUNT_L1 = 1'b1;
             word_fetched = word_fetched + base_count;
+            ACK_DATA_L1 = word_fetched - 4'b0001;
+            word_received = 1'b0;
         end
         
         // Load Operation: Address has been received by the memory and word_to_be_fetched has been sent by mem
-        else if (LOAD && VALID && READY && address_sent && word_fetched != 4'b0000 && ACK_DATA_MEM == word_fetched && !ACK_COUNT_MEM) begin
-
+        else if (LOAD && VALID && READY && address_sent && !word_received && word_fetched != 4'b0000 && ACK_DATA_MEM == word_fetched && !ACK_COUNT_MEM) begin
+            $display("Give 2 base word %h %h", DATA_MEM, word_fetched);
             ACK_ADDR_L1 = 1'b0;
             fetched_data_from_mem[word_fetched] = DATA_MEM;
             ACK_DATA_L1 = word_fetched;
             ACK_COUNT_L1 = 1'b0;
+            word_received = 1'b1;
         end
 
-        else if (LOAD && VALID && READY && address_sent && ACK_ADDR_MEM && word_fetched != 4'b0000 && ACK_DATA_MEM == word_fetched && ACK_COUNT_MEM) begin
+        else if (LOAD && VALID && READY && address_sent && word_received && word_fetched != 4'b0000 && ACK_DATA_MEM == word_fetched && ACK_COUNT_MEM) begin
+            $display("Give 2 base count %h %h", DATA_MEM, word_fetched);
             ACK_ADDR_L1 = 1'b0;
             base_count = DATA_MEM;
 
@@ -157,9 +166,12 @@ module L1D_Cache(
            
             ACK_COUNT_L1 = 1'b1;
             word_fetched = word_fetched + base_count;
-
+            word_received = 1'b0;
+            ACK_DATA_L1 = word_fetched - 4'b0001 ;
             // Load has been completed from L1 Cache side
+            $display("Sending ack data l1 %h", ACK_DATA_L1);
             if (word_fetched == 4'b1000) begin
+                $display("JJ");
                 tag = input_address[31:OFFSET_BITS+INDEX_BITS];
                 index = input_address[OFFSET_BITS+INDEX_BITS-1:OFFSET_BITS];
                 offset = input_address[OFFSET_BITS-1:0];

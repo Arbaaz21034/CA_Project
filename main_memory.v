@@ -47,8 +47,8 @@ module Main_Memory(
  
     reg [31:0] buffer;
     integer i;
-
-    reg [31:0] maxError = 32'b0100000;
+    integer flag;
+    reg [31:0] maxError = 32'b0010000;
     
     reg [31:0] word;
     reg [31:0] base_word;
@@ -56,6 +56,9 @@ module Main_Memory(
     reg [31:0] abs_diff;
 
     reg [31:0] base_count;
+    
+    
+    reg isWordSent = 1'b0;
 
     always @(posedge CLK) begin
 
@@ -72,66 +75,86 @@ module Main_Memory(
             base_word = mem_storage[start_address + word_sent];
             abs_diff = 32'b0;
             base_count = 32'b0;
-            for (i = word_sent; i < 8; i = i + 1) begin
-                $display("HELLO AEB %h", i);
+            flag=0;
+            for (i = 0; i < 8; i = i + 1) begin
+                
                 word =  mem_storage[start_address + i];
                 abs_diff = (word > base_word) ? (word - base_word) : (base_word - word);
-                if (abs_diff <= maxError) begin
+                if (abs_diff <= maxError && !flag) begin
                     base_count = base_count + 1;
                 end
                 else begin
-                   i = 8;
+                    flag=1;
                 end
                 
-                
             end
-
+            
+            $display("Base word is: %h, and Base count is %h", base_word, base_count);
 
             
             DATA_MEM = base_word;
             ACK_DATA_MEM = 4'b0000;
+            ACK_COUNT_MEM = 1'b0;
+           
             
         end
         else if (LOAD && VALID && READY && address_received && ACK_COUNT_L1 == 0 && ACK_DATA_L1 == word_sent) begin
+            
             ACK_ADDR_MEM = 1'b0;
             DATA_MEM = base_count;
 
             ACK_COUNT_MEM = 1'b1;
-            word_sent = word_sent + base_count - 32'b1;
+            word_sent = word_sent + base_count - 4'b0001;
+            $display("The word sent is %h", word_sent);
+            isWordSent = 1'b0;
 
         end
 
 
-        else if (LOAD && VALID && READY && address_received && ACK_COUNT_L1 && ACK_DATA_L1 == word_sent && ACK_DATA_L1 != 4'b0111) begin
+        else if (LOAD && VALID && READY && !isWordSent && address_received && ACK_COUNT_L1 && ACK_DATA_L1 == word_sent && ACK_DATA_L1 != 4'b0111) begin
             ACK_ADDR_MEM = 1'b0;
             start_address = ((address/8) * 8);
-            base_word = mem_storage[start_address + word_sent];
+            base_word = mem_storage[start_address + word_sent + 4'b01];
             abs_diff = 32'b0;
-            for (i = word_sent; i < 8; i = i + 1) begin
+            flag=0;
+            base_count = 4'b0000;
+            for (i = 0; i < 8; i = i + 1) begin
+                
                 word = mem_storage[start_address + i];
+//                $display("base word is %h at %h and word is %h %h", base_word, i, word, abs_diff);
                 abs_diff = (word > base_word) ? (word - base_word) : (base_word - word);
-                if (abs_diff <= maxError) begin
+//                $display("base word is %h at %h and word is %h %h", base_word, i, word, abs_diff);
+                if (abs_diff <= maxError && i > word_sent && !flag) begin
+//                    $display("The word is %h and the absolute difference is %h", word, abs_diff);
                     base_count = base_count + 1;
                 end
-                else begin
-                    i = 8;
+                else if (i> word_sent) begin
+                    flag=1;
                 end
                 
                 
             end
+            
+            
             DATA_MEM = base_word;
-            ACK_DATA_MEM = word_sent + 32'b1;
+            word_sent = word_sent + 4'b0001;
+            ACK_DATA_MEM = word_sent;
+            ACK_COUNT_MEM = 1'b0;
+            isWordSent = 1'b1;
+            $display("2nd Base word is: %h, and Base count is %h %h the word sent is %h", base_word, base_count, ACK_DATA_MEM, word_sent);
         end
 
-        else if (LOAD && VALID && READY && address_received && ACK_COUNT_L1 == 0 && ACK_DATA_L1 == word_sent && ACK_DATA_L1 != 4'b0111) begin
-
+        else if (LOAD && VALID && READY && address_received && !ACK_COUNT_L1 && ACK_DATA_L1 == word_sent) begin
+            $display("HLEOO");
             DATA_MEM = base_count;
             ACK_COUNT_MEM = 1'b1;
-            word_sent = word_sent + base_count - 32'b1;
+            word_sent = word_sent + base_count - 32'b01;
+            isWordSent = 1'b0;
         end
 
         // Load has been completed
-        else if (READY && ACK_DATA_L1 == 4'b0111) begin
+        else if (READY && ACK_DATA_L1 == 4'b0111 && ACK_COUNT_L1) begin
+            $display("KK");
             address_received = 1'b0;
             word_sent = 4'b0000;
             READY = 1'b0;
