@@ -13,7 +13,9 @@ module Main_Memory(
         output reg ACK_ADDR_MEM,
 
         output reg RESET_ACK_MEM,
-        input wire RESET_ACK_L1
+        input wire RESET_ACK_L1,
+        input wire ACK_COUNT_L1,
+        output reg ACK_COUNT_MEM
         
     );
     
@@ -38,13 +40,23 @@ module Main_Memory(
     end
 
 
-    reg [2:0] word_sent = 3'b000;
+    reg [3:0] word_sent = 0;
     reg address_received = 1'b0;
     
     reg [31:0] address = 32'b0;
  
     reg [31:0] buffer;
+    integer i;
+
+    reg [31:0] maxError = 32'b0100000;
     
+    reg [31:0] word;
+    reg [31:0] base_word;
+
+    reg [31:0] abs_diff;
+
+    reg [31:0] base_count;
+
     always @(posedge CLK) begin
 
         if (LOAD && VALID && !READY) begin
@@ -57,17 +69,65 @@ module Main_Memory(
             ACK_ADDR_MEM = 1'b1;
             address_received = 1'b1;
             start_address = ((address/8) * 8);
-            DATA_MEM = mem_storage[start_address + word_sent];
+            base_word = mem_storage[start_address + word_sent];
+            abs_diff = 32'b0;
+            base_count = 32'b0;
+            for (i = word_sent; i < 8; i = i + 1) begin
+                $display("HELLO AEB %h", i);
+                word =  mem_storage[start_address + i];
+                abs_diff = (word > base_word) ? (word - base_word) : (base_word - word);
+                if (abs_diff <= maxError) begin
+                    base_count = base_count + 1;
+                end
+                else begin
+                   i = 8;
+                end
+                
+                
+            end
+
+
+            
+            DATA_MEM = base_word;
             ACK_DATA_MEM = 4'b0000;
             
         end
+        else if (LOAD && VALID && READY && address_received && ACK_COUNT_L1 == 0 && ACK_DATA_L1 == word_sent) begin
+            ACK_ADDR_MEM = 1'b0;
+            DATA_MEM = base_count;
 
-        else if (LOAD && VALID && READY && address_received && ACK_DATA_L1 == word_sent && ACK_DATA_L1 != 4'b0111) begin
+            ACK_COUNT_MEM = 1'b1;
+            word_sent = word_sent + base_count - 32'b1;
+
+        end
+
+
+        else if (LOAD && VALID && READY && address_received && ACK_COUNT_L1 && ACK_DATA_L1 == word_sent && ACK_DATA_L1 != 4'b0111) begin
             ACK_ADDR_MEM = 1'b0;
             start_address = ((address/8) * 8);
-            word_sent = word_sent + 1'b1;
-            DATA_MEM = mem_storage[start_address + word_sent];
-            ACK_DATA_MEM = word_sent;
+            base_word = mem_storage[start_address + word_sent];
+            abs_diff = 32'b0;
+            for (i = word_sent; i < 8; i = i + 1) begin
+                word = mem_storage[start_address + i];
+                abs_diff = (word > base_word) ? (word - base_word) : (base_word - word);
+                if (abs_diff <= maxError) begin
+                    base_count = base_count + 1;
+                end
+                else begin
+                    i = 8;
+                end
+                
+                
+            end
+            DATA_MEM = base_word;
+            ACK_DATA_MEM = word_sent + 32'b1;
+        end
+
+        else if (LOAD && VALID && READY && address_received && ACK_COUNT_L1 == 0 && ACK_DATA_L1 == word_sent && ACK_DATA_L1 != 4'b0111) begin
+
+            DATA_MEM = base_count;
+            ACK_COUNT_MEM = 1'b1;
+            word_sent = word_sent + base_count - 32'b1;
         end
 
         // Load has been completed
@@ -78,7 +138,7 @@ module Main_Memory(
             ACK_DATA_MEM = 4'b1111;
             RESET_ACK_MEM = 1'b1;
             address_received = 1'b0;
-            
+            ACK_COUNT_MEM = 1'b0;
         end  
 
         else if (STORE && VALID && !READY && ACK_DATA_MEM == 4'b1111) begin

@@ -26,6 +26,9 @@ module Mem_Subsystem (
     wire RESET_ACK_L1;
     wire RESET_ACK_MEM;
 
+    wire ACK_COUNT_L1;
+    wire ACK_COUNT_MEM;
+
   
 
     
@@ -48,7 +51,9 @@ module Mem_Subsystem (
         .ACK_DATA_MEM(ACK_DATA_MEM),
         .RESET_ACK_L1(RESET_ACK_L1),
         .RESET_ACK_MEM(RESET_ACK_MEM),
-        .store_completed(store_completed)
+        .store_completed(store_completed),
+        .ACK_COUNT_L1(ACK_COUNT_L1),
+        .ACK_COUNT_MEM(ACK_COUNT_MEM)
 
         
     );
@@ -67,7 +72,9 @@ module Mem_Subsystem (
         .ACK_DATA_L1(ACK_DATA_L1),
         .ACK_DATA_MEM(ACK_DATA_MEM),
         .RESET_ACK_L1(RESET_ACK_L1),
-        .RESET_ACK_MEM(RESET_ACK_MEM)
+        .RESET_ACK_MEM(RESET_ACK_MEM).
+        .ACK_COUNT_L1(ACK_COUNT_L1),
+        .ACK_COUNT_MEM(ACK_COUNT_MEM)
         
        
 

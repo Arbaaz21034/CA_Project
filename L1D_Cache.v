@@ -21,7 +21,10 @@ module L1D_Cache(
         
         output reg ACK_ADDR_L1,
         input wire ACK_ADDR_MEM,
-        output reg store_completed
+        output reg store_completed, 
+
+        output reg ACK_COUNT_L1,
+        input wire ACK_COUNT_MEM
         
         
     );
@@ -85,7 +88,7 @@ module L1D_Cache(
     
     reg [1:0] replace_way;
     
-    
+    reg [31:0] base_count;
 
     always @(posedge CLK) begin 
         // LOAD operation received initially
@@ -116,20 +119,44 @@ module L1D_Cache(
             address_sent = 1'b1;
         end
         
-        else if (LOAD && VALID && READY && address_sent && ACK_ADDR_MEM && word_fetched == 4'b0000 && ACK_DATA_MEM == word_fetched) begin
+        else if (LOAD && VALID && READY && address_sent && ACK_ADDR_MEM && word_fetched == 4'b0000 && ACK_DATA_MEM == word_fetched && !ACK_COUNT_MEM) begin
             ACK_ADDR_L1 = 1'b0;
             fetched_data_from_mem[word_fetched] = DATA_MEM;
             ACK_DATA_L1 = word_fetched;
-            word_fetched = word_fetched + 1'b1;
+            ACK_COUNT_L1 = 1'b0;
+        end
+
+        else if (LOAD && VALID && READY && address_sent && word_fetched == 4'b0000 && ACK_DATA_MEM == word_fetched && ACK_COUNT_MEM) begin
+            ACK_ADDR_L1 = 1'b0;
+            base_count = DATA_MEM;
+
+            for (i = word_fetched + 1; i < word_fetched + base_count; i = i + 1) begin
+                fetched_data_from_mem[i] = fetched_data_from_mem[i - 32'b01];
+            end
+           
+            ACK_COUNT_L1 = 1'b1;
+            word_fetched = word_fetched + base_count;
         end
         
         // Load Operation: Address has been received by the memory and word_to_be_fetched has been sent by mem
-        else if (LOAD && VALID && READY && address_sent && word_fetched != 4'b0000 && ACK_DATA_MEM == word_fetched) begin
-            $display("HELLOW WORD");
+        else if (LOAD && VALID && READY && address_sent && word_fetched != 4'b0000 && ACK_DATA_MEM == word_fetched && !ACK_COUNT_MEM) begin
+
             ACK_ADDR_L1 = 1'b0;
             fetched_data_from_mem[word_fetched] = DATA_MEM;
             ACK_DATA_L1 = word_fetched;
-            word_fetched = word_fetched + 1'b1;
+            ACK_COUNT_L1 = 1'b0;
+        end
+
+        else if (LOAD && VALID && READY && address_sent && ACK_ADDR_MEM && word_fetched != 4'b0000 && ACK_DATA_MEM == word_fetched && ACK_COUNT_MEM) begin
+            ACK_ADDR_L1 = 1'b0;
+            base_count = DATA_MEM;
+
+            for (i = word_fetched + 1; i < word_fetched + base_count; i = i + 1) begin
+                fetched_data_from_mem[i] = fetched_data_from_mem[i - 32'b01];
+            end
+           
+            ACK_COUNT_L1 = 1'b1;
+            word_fetched = word_fetched + base_count;
 
             // Load has been completed from L1 Cache side
             if (word_fetched == 4'b1000) begin
@@ -166,9 +193,9 @@ module L1D_Cache(
                 data = fetched_data_from_mem[offset];
                 VALID = 1'b0;
            end
-
-           
         end
+
+
 
         
 
@@ -216,6 +243,7 @@ module L1D_Cache(
         
         else if (RESET_ACK_MEM) begin 
             ACK_DATA_L1 = 4'b1111;
+            ACK_COUNT_L1 = 1'b0;
         end
 
     end
