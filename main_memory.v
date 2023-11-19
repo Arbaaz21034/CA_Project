@@ -67,7 +67,7 @@ module Main_Memory(
             READY = 1'b1;
         end
 
-        else if (LOAD && VALID && READY && !address_received && ACK_ADDR_L1) begin
+        else if (LOAD && VALID && READY && !isWordSent && !address_received && ACK_ADDR_L1) begin
             address = DATA_L1;
             ACK_ADDR_MEM = 1'b1;
             address_received = 1'b1;
@@ -95,10 +95,11 @@ module Main_Memory(
             DATA_MEM = base_word;
             ACK_DATA_MEM = 4'b0000;
             ACK_COUNT_MEM = 1'b0;
+            isWordSent = 1'b1;
            
             
         end
-        else if (LOAD && VALID && READY && address_received && ACK_COUNT_L1 == 0 && ACK_DATA_L1 == word_sent) begin
+        else if (LOAD && VALID && READY && isWordSent && address_received && ACK_COUNT_L1 == 0 && ACK_DATA_L1 == word_sent) begin
             
             ACK_ADDR_MEM = 1'b0;
             DATA_MEM = base_count;
@@ -162,6 +163,7 @@ module Main_Memory(
             RESET_ACK_MEM = 1'b1;
             address_received = 1'b0;
             ACK_COUNT_MEM = 1'b0;
+            isWordSent = 1'b0;
         end  
 
         else if (STORE && VALID && !READY && ACK_DATA_MEM == 4'b1111) begin

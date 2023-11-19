@@ -95,7 +95,7 @@ module L1D_Cache(
         // LOAD operation received initially
        
         if (LOAD && !VALID) begin 
-
+            RESET_ACK_L1 = 1'b0;
             CACHE_HIT = 1'b0; 
             tag = input_address[31:OFFSET_BITS+INDEX_BITS];
             index = input_address[OFFSET_BITS+INDEX_BITS-1:OFFSET_BITS];
@@ -204,6 +204,7 @@ module L1D_Cache(
                 
                 data = fetched_data_from_mem[offset];
                 VALID = 1'b0;
+                word_received = 1'b0;
            end
         end
 
