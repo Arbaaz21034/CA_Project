@@ -145,14 +145,7 @@ module Main_Memory(
             $display("2nd Base word is: %h, and Base count is %h %h the word sent is %h", base_word, base_count, ACK_DATA_MEM, word_sent);
         end
 
-        else if (LOAD && VALID && READY && address_received && !ACK_COUNT_L1 && ACK_DATA_L1 == word_sent) begin
-            $display("HLEOO");
-            DATA_MEM = base_count;
-            ACK_COUNT_MEM = 1'b1;
-            word_sent = word_sent + base_count - 32'b01;
-            isWordSent = 1'b0;
-        end
-
+    
         // Load has been completed
         else if (READY && ACK_DATA_L1 == 4'b0111 && ACK_COUNT_L1) begin
             $display("KK");
@@ -168,6 +161,7 @@ module Main_Memory(
 
         else if (STORE && VALID && !READY && ACK_DATA_MEM == 4'b1111) begin
             $display("lfhg1 %h", 1);
+            RESET_ACK_MEM = 1'b0;
             READY = 1'b1;
 
         end   

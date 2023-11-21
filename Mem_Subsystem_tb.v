@@ -39,73 +39,49 @@ module Mem_Subsystem_tb(
         #10;
 
         // Test Load Operation
-//        tb_input_address = 32'h00000019;  // Sample address
-//        tb_LOAD = 1;
-//        #250; 
+        tb_input_address = 32'h00000019;  // Sample address
+        tb_LOAD = 1;
+        #500; 
         
-//        // Observe the data output
-//        $display("Data for address %h: %h", tb_input_address, tb_data);
+        // Observe the data output
+        $display("Data for address %h: %h", tb_input_address, tb_data);
         
-//        tb_LOAD = 0;
-//        // Wait for few clock cycles
-//        #10;
+        tb_LOAD = 0;
+        // Wait for few clock cycles
+        #10;
 
-//        // Test Load Operation
-//        tb_input_address = 32'h00000004;  // Sample address
-//        tb_LOAD = 1;
-//        #250; // Simulate 10 clock cycles
+        // Test Load Operation
+        tb_input_address = 32'h00000004;  // Sample address
+        tb_LOAD = 1;
+        #500; // Simulate 10 clock cycles
         
         
-//        // Observe the data output
-//        $display("Data for address %h: %h", tb_input_address, tb_data);
+        // Observe the data output
+        $display("Data for address %h: %h", tb_input_address, tb_data);
         
-//        tb_LOAD = 0;
-//        // Wait for few clock cycles
-//        #10;
+        tb_LOAD = 0;
+        // Wait for few clock cycles
+        #10;
 
-//        // Test Load Operation
-//        tb_input_address = 32'h00000019;  // Sample address
-//        tb_LOAD = 1;
-//        #250; // Simulate 10 clock cycles
+        // Test Load Operation
+        tb_input_address = 32'h00000028;  // Sample address
+        tb_LOAD = 1;
+        #500; // Simulate 10 clock cycles
         
-//        // Observe the data output
-//        $display("Data for address %h: %h", tb_input_address, tb_data);
+        // Observe the data output
+        $display("Data for address %h: %h", tb_input_address, tb_data);
 
 
-//        tb_STORE = 0;
-//        // Wait for few clock cycles
-//        #10;
+        tb_STORE = 0;
+        // Wait for few clock cycles
+        #10;
 
-//        // Test STORE Operation
-//        tb_input_address = 32'h00000019;  // Sample address
-//        tb_input_data = 32'h00000019;
-//        tb_STORE = 1;
-//        #250; // Simulate 10 clock cycles
+        // Test STORE Operation
+        tb_input_address = 32'h00000019;  // Sample address
+        tb_input_data = 32'h00000019;
+        tb_STORE = 1;
+        #500; // Simulate 10 clock cycles
         
-        
-        
-//        tb_LOAD = 0;
-//        // Wait for few clock cycles
-//        #10;
-
-//        // Test Load Operation
-//        tb_input_address = 32'h00000019;  // Sample address
-//        tb_LOAD = 1;
-//        #250; // Simulate 10 clock cycles
-        
-//        // Observe the data output
-//        $display("Data for address %h: %h", tb_input_address, tb_data);
-        
-
-//        tb_STORE = 0;
-//        // Wait for few clock cycles
-//        #10;
-
-//        // Test STORE Operation
-//        tb_input_address = 32'h00000020;  // Sample address
-//        tb_input_data = 32'h00000020;
-//        tb_STORE = 1;
-//        #250; // Simulate 10 clock cycles
         
         
         tb_LOAD = 0;
@@ -113,12 +89,105 @@ module Mem_Subsystem_tb(
         #10;
 
         // Test Load Operation
-        tb_input_address = 32'h00000008;  // Sample address
+        tb_input_address = 32'h00000019;  // Sample address
         tb_LOAD = 1;
         #500; // Simulate 10 clock cycles
         
         // Observe the data output
         $display("Data for address %h: %h", tb_input_address, tb_data);
+        
+
+        tb_STORE = 0;
+        // Wait for few clock cycles
+        #10;
+
+        // Test STORE Operation
+        tb_input_address = 32'h00000000;  // Sample address
+        tb_input_data = 32'h00000020;
+        tb_STORE = 1;
+        #500; // Simulate 10 clock cycles
+        
+        
+        tb_LOAD = 0;
+        // Wait for few clock cycles
+        #10;
+
+        // Test Load Operation
+        tb_input_address = 32'h0000000028;  // Sample address
+        tb_LOAD = 1;
+        #500; // Simulate 10 clock cycles
+        
+        // Observe the data output
+        $display("Data for address %h: %h", tb_input_address, tb_data);
+        
+//        tb_LOAD = 0;
+//        // Wait for few clock cycles
+//        #10;
+
+//        // Test Load Operation
+//        tb_input_address = 32'h00000000;  // Sample address
+//        tb_LOAD = 1;
+//        #500; // Simulate 10 clock cycles
+        
+//        // Observe the data output
+//        $display("Data for address %h: %h", tb_input_address, tb_data);
+        
+//        tb_LOAD = 0;
+//        // Wait for few clock cycles
+//        #10;
+
+//        // Test Load Operation
+//        tb_input_address = 32'h00000010;  // Sample address
+//        tb_LOAD = 1;
+//        #500; // Simulate 10 clock cycles
+        
+//        // Observe the data output
+//        $display("Data for address %h: %h", tb_input_address, tb_data);
+//        tb_LOAD = 0;
+//        // Wait for few clock cycles
+//        #10;
+
+//        // Test Load Operation
+//        tb_input_address = 32'h00000020;  // Sample address
+//        tb_LOAD = 1;
+//        #500; // Simulate 10 clock cycles
+        
+//        // Observe the data output
+//        $display("Data for address %h: %h", tb_input_address, tb_data);
+//        tb_LOAD = 0;
+//        // Wait for few clock cycles
+//        #10;
+
+//        // Test Load Operation
+//        tb_input_address = 32'h00000030;  // Sample address
+//        tb_LOAD = 1;
+//        #500; // Simulate 10 clock cycles
+        
+//        // Observe the data output
+//        $display("Data for address %h: %h", tb_input_address, tb_data);
+//        tb_LOAD = 0;
+//        // Wait for few clock cycles
+//        #10;
+
+//        // Test Load Operation
+//        tb_input_address = 32'h00000040;  // Sample address
+//        tb_LOAD = 1;
+//        #500; // Simulate 10 clock cycles
+        
+//        // Observe the data output
+//        $display("Data for address %h: %h", tb_input_address, tb_data);
+        
+//        tb_LOAD = 0;
+//        // Wait for few clock cycles
+//        #10;
+
+//        // Test Load Operation
+//        tb_input_address = 32'h00000000;  // Sample address
+//        tb_LOAD = 1;
+//        #500; // Simulate 10 clock cycles
+        
+//        // Observe the data output
+//        $display("Data for address %h: %h", tb_input_address, tb_data);
         
         
         
